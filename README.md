@@ -44,13 +44,13 @@ memory address would access real memory or memory mapped IO (including video mem
 I'm adding separate instructions for accessing video memory and for general IO, thus eliminating 
 the need for paging while allowing a full 64 kb of main memory.
 
-Video is unlike the computer that use the 6502, and in some ways more like early PCs.  This 
+Video is unlike the computers that use the 6502, and in some ways more like early PCs.  This 
 is a simplification, allowing video modes to be set and graphics to be written to the video 
 memory buffer.  I may even include the ability to trigger updates, at least in some modes; 
 how realistic I keep this is not decided (two smaller 16 color buffers alternated, or one 
-256 color buffer that magically updates without extra memory).  Different real 6502 system 
+256 color buffer that magically updates without extra memory).  Different real 6502 systems 
 could vary wildly, often using separate proprietary hardware anyway (e.g., Atari's ANTIC and 
-CTIA/GTIA chips, Nintendo's PPU, etc.).  The graphics are planned to by 320x180 pixels, with 
+CTIA/GTIA chips, Nintendo's PPU, etc.).  The graphics are planned to be 320x180 pixels, with 
 gray scale, 256 color immediate mode, and 16 color page-flipping mode (unless I go the less 
 realistic route and allow magic flipping with imaginary pages).  Of course, a text mode will 
 also be needed.  Technically, this is beyond the capabilities of any of systems actually using 
