@@ -252,7 +252,7 @@ namespace ssixtyfive {
             tmp = ac.uval & ram[ram[ip++].uval].uval;
             break;
         case oprela:
-            tmp = ac.uval * ram[ip + ram[ip].sval].uval;
+            tmp = ac.uval & ram[ip + ram[ip].sval].uval;
             ip++;
             break;
         case opmain:
@@ -272,6 +272,219 @@ namespace ssixtyfive {
 
 
     // Arithmatic Operations
+    // TODO: Binary Coded Decimals (Decimal Mode), probably using a look up table
+
+
+    void VirtualCPU::ExecAdd() { // Add Without Carry
+        unsigned char tmp;
+        switch (curOpmode) {
+        case opdirc:
+            tmp = ram[ip++].uval;
+            break;
+        case opzero:
+            tmp = ram[ram[ip++].uval].uval;
+            break;
+        case oprela:
+            tmp = ram[ip + ram[ip].sval].uval;
+            ip++;
+            break;
+        case opmain:
+        default:
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            tmp = ram[address].uval;
+            break;
+        }
+        ac.uval += tmp;
+    }
+
+
+    void VirtualCPU::ExecAdc() { // Add With Carry
+        unsigned char tmp;
+        switch (curOpmode) {
+        case opdirc:
+            tmp = ram[ip++].uval;
+            break;
+        case opzero:
+            tmp = ram[ram[ip++].uval].uval;
+            break;
+        case oprela:
+            tmp = ram[ip + ram[ip].sval].uval;
+            ip++;
+            break;
+        case opmain:
+        default:
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            tmp = ram[address].uval;
+            break;
+        }
+        unsigned char oldac = ac.uval;
+        ac.uval += tmp;
+        flags.uval = (flags.uval & ~(0x01 << carryflag)) | ((((oldac & 0x80) & (tmp & 0x80)) > 0) << carryflag);
+        flags.uval = (flags.uval & ~(0x01 << overflowflag)) |
+                     (((((oldac & 0x80) == (tmp & 0x80)) && ((ac.uval & 0x80) != (tmp & 0x80))) > 0) << overflowflag);
+        flags.uval = (flags.uval & ~(0x01 << zeroflag)) | ((ac.uval == 0) << zeroflag);
+        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((ac.uval & 0x80) > 0) << carryflag);
+    }
+
+
+    void VirtualCPU::ExecSub() { // Subtract Without Carry
+        unsigned char tmp;
+        switch (curOpmode) {
+        case opdirc:
+            tmp = ram[ip++].uval;
+            break;
+        case opzero:
+            tmp = ram[ram[ip++].uval].uval;
+            break;
+        case oprela:
+            tmp = ram[ip + ram[ip].sval].uval;
+            ip++;
+            break;
+        case opmain:
+        default:
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            tmp = ram[address].uval;
+            break;
+        }
+        ac.uval -= tmp;
+    }
+
+
+    void VirtualCPU::ExecSbc() { // Subtract With Carry
+        unsigned char tmp;
+        switch (curOpmode) {
+        case opdirc:
+            tmp = ram[ip++].uval;
+            break;
+        case opzero:
+            tmp = ram[ram[ip++].uval].uval;
+            break;
+        case oprela:
+            tmp = ram[ip + ram[ip].sval].uval;
+            ip++;
+            break;
+        case opmain:
+        default:
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            tmp = ram[address].uval;
+            break;
+        }
+        unsigned char oldac = ac.uval;
+        ac.uval -= tmp;
+        flags.uval = (flags.uval & ~(0x01 << carryflag)) | ((((oldac & 0x80) & (tmp & 0x80)) == 0) << carryflag);
+        flags.uval = (flags.uval & ~(0x01 << overflowflag)) |
+                     (((((oldac & 0x80) == (tmp & 0x80)) && ((ac.uval & 0x80) != (tmp & 0x80))) > 0) << overflowflag);
+        flags.uval = (flags.uval & ~(0x01 << zeroflag)) | ((ac.uval == 0) << zeroflag);
+        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((ac.uval & 0x80) > 0) << carryflag);
+    }
+
+
+    void VirtualCPU::ExecCmp() { // Compare the Accumular with Value at Address
+        unsigned char tmp;
+        switch (curOpmode) {
+        case opdirc:
+            tmp = ram[ip++].uval;
+            break;
+        case opzero:
+            tmp = ram[ram[ip++].uval].uval;
+            break;
+        case oprela:
+            tmp = ram[ip + ram[ip].sval].uval;
+            ip++;
+            break;
+        case opmain:
+        default:
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            tmp = ram[address].uval;
+            break;
+        }
+        unsigned char oldac = ac.uval;
+        unsigned char newac = ac.uval - tmp;
+        flags.uval = (flags.uval & ~(0x01 << carryflag)) | ((((oldac & 0x80) & (tmp & 0x80)) == 0) << carryflag);
+        flags.uval = (flags.uval & ~(0x01 << overflowflag)) |
+                     (((((oldac & 0x80) == (tmp & 0x80)) && ((newac & 0x80) != (tmp & 0x80))) > 0) << overflowflag);
+        flags.uval = (flags.uval & ~(0x01 << zeroflag)) | ((newac == 0) << zeroflag);
+        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((newac & 0x80) > 0) << carryflag);
+    }
+
+
+    void VirtualCPU::ExecCpx() {  // Compare Reg X with Value at Address
+        unsigned char tmp;
+        switch (curOpmode) {
+        case opdirc:
+            tmp = ram[ip++].uval;
+            break;
+        case opzero:
+            tmp = ram[ram[ip++].uval].uval;
+            break;
+        case oprela:
+            tmp = ram[ip + ram[ip].sval].uval;
+            ip++;
+            break;
+        case opmain:
+        default:
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            tmp = ram[address].uval;
+            break;
+        }
+        unsigned char oldrx = rx.uval;
+        unsigned char newrx = rx.uval - tmp;
+        flags.uval = (flags.uval & ~(0x01 << carryflag)) | ((((oldrx & 0x80) & (tmp & 0x80)) == 0) << carryflag);
+        flags.uval = (flags.uval & ~(0x01 << overflowflag)) |
+                     (((((oldrx & 0x80) == (tmp & 0x80)) && ((newrx & 0x80) != (tmp & 0x80))) > 0) << overflowflag);
+        flags.uval = (flags.uval & ~(0x01 << zeroflag)) | ((newrx == 0) << zeroflag);
+        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((newrx & 0x80) > 0) << carryflag);
+    }
+
+
+    void VirtualCPU::ExecCpy() {  // Compare Reg Y with Value at Address
+        unsigned char tmp;
+        switch (curOpmode) {
+        case opdirc:
+            tmp = ram[ip++].uval;
+            break;
+        case opzero:
+            tmp = ram[ram[ip++].uval].uval;
+            break;
+        case oprela:
+            tmp = ram[ip + ram[ip].sval].uval;
+            ip++;
+            break;
+        case opmain:
+        default:
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            tmp = ram[address].uval;
+            break;
+        }
+        unsigned char oldry = ry.uval;
+        unsigned char newry = ry.uval - tmp;
+        flags.uval = (flags.uval & ~(0x01 << carryflag)) | ((((oldry & 0x80) & (tmp & 0x80)) == 0) << carryflag);
+        flags.uval = (flags.uval & ~(0x01 << overflowflag)) |
+                     (((((oldry & 0x80) == (tmp & 0x80)) && ((newry & 0x80) != (tmp & 0x80))) > 0) << overflowflag);
+        flags.uval = (flags.uval & ~(0x01 << zeroflag)) | ((newry == 0) << zeroflag);
+        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((newry & 0x80) > 0) << carryflag);
+    }
+
+
+    // Shift Operations (all shift by one)
+
+
+
+
+
+
+
+
+
+
+
 
 
 

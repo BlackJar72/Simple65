@@ -41,8 +41,8 @@ namespace ssixtyfive {
         // Arithmatic Operations
         opadd = 0x14, // Add Without Carry
         opadc = 0x15, // Add With Carry
-        opsub = 0x16, // Add Without Carry
-        opsbc = 0x17, // Add With Carry
+        opsub = 0x16, // Subtract Without Carry
+        opsbc = 0x17, // Subtract With Carry
         opcmp = 0x18, // Compare the Accumular with Value at Address
         opcpx = 0x19, // Compare Reg X with Value at Address
         opcpy = 0x1A, // Compare Reg Y with Value at Address
@@ -164,6 +164,14 @@ namespace ssixtyfive {
         void ExecXor(); // Bitwise Exclusive Or
         void ExecIor(); // Bitwise Includise Or
         void ExecBit(); // Non-Destructive Bit Mask Test (for Zero)
+        // Arithmatic Operations
+        void ExecAdd(); // Add Without Carry
+        void ExecAdc(); // Add With Carry
+        void ExecSub(); // Subtract Without Carry
+        void ExecSbc(); // Subtract With Carry
+        void ExecCmp(); // Compare the Accumular with Value at Address
+        void ExecCpx(); // Compare Reg X with Value at Address
+        void ExecCpy(); // Compare Reg Y with Value at Address
     private:
         unsigned short ip;    // Instruction Pointer (aka, program counter)
         vbyte  sp;    // Stack Pointer (points to location between 0x100 and 0x1FF)
