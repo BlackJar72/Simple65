@@ -78,12 +78,11 @@ namespace ssixtyfive {
         oprti = 0x33, // Return from Interrupt
         opnop = 0x34, // Do Nothing (instruction pointrt increments)
         ophlt = 0x35, // Halt (stop all execution, effectively shut down virtual machine)
-        opspg = 0x36, // Set Page Register (mostly to switch from normal to video or io-mapped memory)
         // IO (as an alternative to special memory pages)
-        opwio = 0x37, // Write to IO
-        oprio = 0x38, // Read from IO
-        opwvi = 0x39, // Write to Video Memory
-        oprvi = 0x3A  // Read from Video Memory
+        opwio = 0x36, // Write to IO
+        oprio = 0x37, // Read from IO
+        opwvi = 0x38, // Write to Video Memory
+        oprvi = 0x39  // Read from Video Memory
     };
 
 
@@ -109,6 +108,28 @@ namespace ssixtyfive {
     };
 
 
+    enum flagvals : unsigned char {
+        carryflag    = 0,
+        zeroflag     = 1,
+        intdisflag   = 2,
+        decimalflag  = 3,
+        breakflag    = 4,
+        overflowflag = 5,
+        negativeflag = 6
+    };
+
+
+    enum flagmasks : unsigned char {
+        carrymask    = 0x01 << carryflag,
+        zeromask     = 0x01 << zeroflag,
+        intdismask   = 0x01 << intdisflag,
+        decimalmask  = 0x01 << decimalflag,
+        breakmask    = 0x01 << breakflag,
+        overflowmask = 0x01 << overflowflag,
+        negativemask = 0x01 << negativeflag
+    };
+
+
     union vbyte {
         signed char sval;
         unsigned char uval;
@@ -118,7 +139,6 @@ namespace ssixtyfive {
     class VirtualCPU {
     public:
         void ExecuteNextOpcode(vbyte code);
-        vbyte* GetMemoryAddress(unsigned short address);
         // Load From Memory
         void ExecLda(); // Load Accumulator
         void ExecLdx(); // Load Reg X
@@ -132,6 +152,18 @@ namespace ssixtyfive {
         void ExecTay(); // Reg X to Accumulator
         void ExecTxa(); // Accumulator to Reg Y
         void ExecTya(); // Reg Y to Accumulator
+        // Stack Operations
+        void ExecTsx(); // Stack Pointer to Reg X
+        void EexcTxs(); // Reg X to Stack Pointer
+        void ExecPha(); // Push Accumulator to Stack
+        void ExecPhs(); // Push CPU Status to Stack
+        void ExecPla(); // Pop Accumulator from Stack
+        void ExecPls(); // Pop CPU Status from Stack
+        // Logical Operations
+        void ExecAnd(); // Bitwise And
+        void ExecXor(); // Bitwise Exclusive Or
+        void ExecIor(); // Bitwise Includise Or
+        void ExecBit(); // Non-Destructive Bit Mask Test (for Zero)
     private:
         unsigned short ip;    // Instruction Pointer (aka, program counter)
         vbyte  sp;    // Stack Pointer (points to location between 0x100 and 0x1FF)
@@ -139,7 +171,6 @@ namespace ssixtyfive {
         vbyte  rx;    // Index Register X (a counter, also can be swapped with stack pointer sp)
         vbyte  ry;    // Index Register Y (an extra counter and place to stash a byte)
         vbyte  flags; // Status Flags
-        vbyte  page;  // 64k Meta-Page of Memory (should be one real one, but mapped io and video memory get pages)
 
         // Masks for the opcode and its prefix (opmode)
         const unsigned char opPrefix = 0xC0;
@@ -149,22 +180,13 @@ namespace ssixtyfive {
         const unsigned char mainPage  = 0x00;
 
         // Start of main memory (and other memory mapped data)
-        const unsigned short highOffset  = 0x0200;
+        const unsigned short StackOffset  = 0x0100;
+        const unsigned short highOffset   = 0x0200;
 
         opmodes curOpmode;
         opcodes curOperation;
 
-        // FIXME? If I'm not going to use "paging" the arrays below can be greatly simplified! Should only
-        //        need one full 65536 length array for all memory.  Any paging breaks that, though, as we
-        //        always need access to the "zero page" and stack reguardless of "page," thus the existing
-        //        system would need to be maintained.
-
-        // The following two low-address memory areas are always available, not effected by page register
-        vbyte zero[256];  // Memory Address 0x0000 to 0x00FF, as a kind of proto-cache (not exactly)
-        vbyte stack[256]; // Memory Address 0x0100 to 0x01FF, as a hardware / main stack
-
-        // The following high-address memory areas effected by page register, swapping availability
-        vbyte mainmem[65536 - 512];  // The video memory, 0x0200 to 0xFFFF
+        vbyte ram[65536];
 
         void processOpcode(vbyte opcode);
     };

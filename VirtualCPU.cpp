@@ -16,92 +16,70 @@ namespace ssixtyfive {
     }
 
 
-    // FIXME: If I'm not going to use "paging" (particularly not for IO)
-    //        all memory should be in one array and this should not be needed!
-    vbyte* VirtualCPU::GetMemoryAddress(unsigned short address) {
-        // TODO: Handle "Paging" (i.e., access to mapped io and video memory)
-        // ...but, should that be here or through a separate function?
-        if(address < 0x0100) {
-            return zero + address;
-        } else if(address < 0x200) {
-            return stack + address - 0x0100;
-        } else return mainmem + address - 0x0200;
-    }
-
-
     // Load From Memory
 
 
     void VirtualCPU::ExecLda() {
-        // TODO: Handle "Paging" (i.e., access to mapped io and video memory)
-        // FIXME: If I'm not going to use "paging" (particularly not for IO)
-        //        this can be greatly simplified!
         switch (curOpmode) {
         case opdirc:
-            ac = *GetMemoryAddress(ip++);
+            ac = ram[ip++];
             break;
         case opzero:
-            ac = zero[GetMemoryAddress(ip++)->uval];
+            ac = ram[ram[ip++].uval];
             break;
         case oprela:
-            ac = *GetMemoryAddress(ip - GetMemoryAddress(ip)->sval);
+            ac = ram[ip + ram[ip].sval];
             ip++;
             break;
         case opmain:
         default:
-            unsigned short address = (GetMemoryAddress(ip++)->uval) << 8;
-            address |= GetMemoryAddress(ip++)->uval;
-            ac = *GetMemoryAddress(address);
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            ac = ram[address];
             break;
         }
     }
 
 
     void VirtualCPU::ExecLdx() {
-        // TODO: Handle "Paging" (i.e., access to mapped io and video memory)
-        // FIXME: If I'm not going to use "paging" (particularly not for IO)
-        //        this can be greatly simplified!
         switch (curOpmode) {
         case opdirc:
-            rx = *GetMemoryAddress(ip++);
+            rx = ram[ip++];
             break;
         case opzero:
-            rx = zero[GetMemoryAddress(ip++)->uval];
+            rx = ram[ram[ip++].uval];
             break;
         case oprela:
-            rx = *GetMemoryAddress(ip - GetMemoryAddress(ip)->sval);
+            rx = ram[ip + ram[ip].sval];
             ip++;
             break;
         case opmain:
         default:
-            unsigned short address = (GetMemoryAddress(ip++)->uval) << 8;
-            address |= GetMemoryAddress(ip++)->uval;
-            rx = *GetMemoryAddress(address);
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            rx = ram[address];
             break;
         }
     }
 
 
     void VirtualCPU::ExecLdy() {
-        // TODO: Handle "Paging" (i.e., access to mapped io and video memory)
-        // FIXME: If I'm not going to use "paging" (particularly not for IO)
-        //        this can be greatly simplified!
         switch (curOpmode) {
         case opdirc:
-            ry = *GetMemoryAddress(ip++);
+            ry = ram[ip++];
             break;
         case opzero:
-            ry = zero[GetMemoryAddress(ip++)->uval];
+            ry = ram[ram[ip++].uval];
             break;
         case oprela:
-            ry = *GetMemoryAddress(ip - GetMemoryAddress(ip)->sval);
+            ry = ram[ip + ram[ip].sval];
             ip++;
             break;
         case opmain:
         default:
-            unsigned short address = (GetMemoryAddress(ip++)->uval) << 8;
-            address |= GetMemoryAddress(ip++)->uval;
-            ry = *GetMemoryAddress(address);
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            ry = ram[address];
             break;
         }
     }
@@ -111,72 +89,66 @@ namespace ssixtyfive {
 
 
     void VirtualCPU::ExecSta() {
-        // FIXME: If I'm not going to use "paging" (particularly not for IO)
-        //        this can be greatly simplified!
         switch (curOpmode) {
         case opdirc:
-            *GetMemoryAddress(ip++) = ac;
+            ram[ip++] = ac;
             break;
         case opzero:
-            zero[GetMemoryAddress(ip++)->uval] = ac;
+            ram[ram[ip++].uval] = ac;
             break;
         case oprela:
-            *GetMemoryAddress(ip - GetMemoryAddress(ip)->sval) = ac;
+            ram[ip + ram[ip].sval] = ac;
             ip++;
             break;
         case opmain:
         default:
-            unsigned short address = (GetMemoryAddress(ip++)->uval) << 8;
-            address |= GetMemoryAddress(ip++)->uval;
-            *GetMemoryAddress(address) = ac;
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            ram[address] = ac;
             break;
         }
     }
 
 
     void VirtualCPU::ExecStx() {
-        // FIXME: If I'm not going to use "paging" (particularly not for IO)
-        //        this can be greatly simplified!
         switch (curOpmode) {
         case opdirc:
-            *GetMemoryAddress(ip++) = rx;
+            ram[ip++] = rx;
             break;
         case opzero:
-            zero[GetMemoryAddress(ip++)->uval] = rx;
+            ram[ram[ip++].uval] = rx;
             break;
         case oprela:
-            *GetMemoryAddress(ip - GetMemoryAddress(ip)->sval) = rx;
+            ram[ip + ram[ip].sval] = rx;
             ip++;
             break;
         case opmain:
         default:
-            unsigned short address = (GetMemoryAddress(ip++)->uval) << 8;
-            address |= GetMemoryAddress(ip++)->uval;
-            *GetMemoryAddress(address) = rx;
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            ram[address] = rx;
             break;
         }
     }
 
 
     void VirtualCPU::ExecSty() {
-        // FIXME: If I'm not going to use "paging" (particularly not for IO)
-        //        this can be greatly simplified!
         switch (curOpmode) {
         case opdirc:
-            *GetMemoryAddress(ip++) = ry;
+            ram[ip++] = ry;
             break;
         case opzero:
-            zero[GetMemoryAddress(ip++)->uval] = ry;
+            ram[ram[ip++].uval] = ry;
             break;
         case oprela:
-            *GetMemoryAddress(ip - GetMemoryAddress(ip)->sval) = ry;
+            ram[ip + ram[ip].sval] = ry;
             ip++;
             break;
         case opmain:
         default:
-            unsigned short address = (GetMemoryAddress(ip++)->uval) << 8;
-            address |= GetMemoryAddress(ip++)->uval;
-            *GetMemoryAddress(address) = ry;
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            ram[address] = ry;
             break;
         }
     }
@@ -191,6 +163,119 @@ namespace ssixtyfive {
 
 
     // Stack Operations
+
+
+    void VirtualCPU::ExecTsx() { rx = sp; }                              // Stack Pointer to Reg X
+    void VirtualCPU::EexcTxs() { sp = rx; }                              // Reg X to Stack Pointer
+    void VirtualCPU::ExecPha() { ram[StackOffset + sp.uval++] = ac; }    // Push Accumulator to Stack
+    void VirtualCPU::ExecPhs() { ram[StackOffset + sp.uval++] = flags; } // Push CPU Status to Stack
+    void VirtualCPU::ExecPla() { ac = ram[StackOffset + sp.uval--]; }    // Pop Accumulator from Stack
+    void VirtualCPU::ExecPls() { flags = ram[StackOffset +sp.uval--]; }  // Pop CPU Status from Stack
+
+
+    // Logical Operations
+
+
+    void VirtualCPU::ExecAnd() { // Bitwise And
+        switch (curOpmode) {
+        case opdirc:
+            ac.uval &= ram[ip++].uval;
+            break;
+        case opzero:
+            ac.uval &= ram[ram[ip++].uval].uval;
+            break;
+        case oprela:
+            ac.uval &= ram[ip + ram[ip].sval].uval;
+            ip++;
+            break;
+        case opmain:
+        default:
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            ac.uval &= ram[address].uval;
+            break;
+        }
+    }
+
+
+    void VirtualCPU::ExecXor() { // Bitwise Exclusive Or
+        switch (curOpmode) {
+        case opdirc:
+            ac.uval ^= ram[ip++].uval;
+            break;
+        case opzero:
+            ac.uval ^= ram[ram[ip++].uval].uval;
+            break;
+        case oprela:
+            ac.uval ^= ram[ip + ram[ip].sval].uval;
+            ip++;
+            break;
+        case opmain:
+        default:
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            ac.uval ^= ram[address].uval;
+            break;
+        }
+    }
+
+
+    void VirtualCPU::ExecIor() { // Bitwise Includise Or
+        switch (curOpmode) {
+        case opdirc:
+            ac.uval |= ram[ip++].uval;
+            break;
+        case opzero:
+            ac.uval |= ram[ram[ip++].uval].uval;
+            break;
+        case oprela:
+            ac.uval |= ram[ip + ram[ip].sval].uval;
+            ip++;
+            break;
+        case opmain:
+        default:
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            ac.uval |= ram[address].uval;
+            break;
+        }
+    }
+
+
+    void VirtualCPU::ExecBit() { // Non-Destructive Bit Mask Test (for Zero)
+        unsigned char tmp;
+        switch (curOpmode) {
+        case opdirc:
+            tmp = ac.uval & ram[ip++].uval;
+            break;
+        case opzero:
+            tmp = ac.uval & ram[ram[ip++].uval].uval;
+            break;
+        case oprela:
+            tmp = ac.uval * ram[ip + ram[ip].sval].uval;
+            ip++;
+            break;
+        case opmain:
+        default:
+            unsigned short address = (ram[ip++].uval) << 8;
+            address |= ram[ip++].uval;
+            tmp = ac.uval & ram[address].uval;
+            break;
+        }
+        // Set overflow to bit 6
+        flags.uval |= ((tmp & 0x01 << 6) >> 1);
+        // Set negative to bit 7
+        flags.uval |= ((tmp & 0x01 << 7) >> 1);
+        // set zero flag if result is zero, unset it if not
+        flags.uval = (flags.uval & ~(1u << 1)) | ((tmp == 0) << 1);
+    }
+
+
+    // Arithmatic Operations
+
+
+
+
 
 
 
