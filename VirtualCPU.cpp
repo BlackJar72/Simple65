@@ -325,7 +325,7 @@ namespace ssixtyfive {
         flags.uval = (flags.uval & ~(0x01 << overflowflag)) |
                      (((((oldac & 0x80) == (tmp & 0x80)) && ((ac.uval & 0x80) != (tmp & 0x80))) > 0) << overflowflag);
         flags.uval = (flags.uval & ~(0x01 << zeroflag)) | ((ac.uval == 0) << zeroflag);
-        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((ac.uval & 0x80) > 0) << carryflag);
+        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((ac.uval & 0x80) > 0) << negativeflag);
     }
 
 
@@ -379,7 +379,7 @@ namespace ssixtyfive {
         flags.uval = (flags.uval & ~(0x01 << overflowflag)) |
                      (((((oldac & 0x80) == (tmp & 0x80)) && ((ac.uval & 0x80) != (tmp & 0x80))) > 0) << overflowflag);
         flags.uval = (flags.uval & ~(0x01 << zeroflag)) | ((ac.uval == 0) << zeroflag);
-        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((ac.uval & 0x80) > 0) << carryflag);
+        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((ac.uval & 0x80) > 0) << negativeflag);
     }
 
 
@@ -409,7 +409,7 @@ namespace ssixtyfive {
         flags.uval = (flags.uval & ~(0x01 << overflowflag)) |
                      (((((oldac & 0x80) == (tmp & 0x80)) && ((newac & 0x80) != (tmp & 0x80))) > 0) << overflowflag);
         flags.uval = (flags.uval & ~(0x01 << zeroflag)) | ((newac == 0) << zeroflag);
-        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((newac & 0x80) > 0) << carryflag);
+        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((newac & 0x80) > 0) << negativeflag);
     }
 
 
@@ -439,7 +439,7 @@ namespace ssixtyfive {
         flags.uval = (flags.uval & ~(0x01 << overflowflag)) |
                      (((((oldrx & 0x80) == (tmp & 0x80)) && ((newrx & 0x80) != (tmp & 0x80))) > 0) << overflowflag);
         flags.uval = (flags.uval & ~(0x01 << zeroflag)) | ((newrx == 0) << zeroflag);
-        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((newrx & 0x80) > 0) << carryflag);
+        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((newrx & 0x80) > 0) << negativeflag);
     }
 
 
@@ -469,11 +469,36 @@ namespace ssixtyfive {
         flags.uval = (flags.uval & ~(0x01 << overflowflag)) |
                      (((((oldry & 0x80) == (tmp & 0x80)) && ((newry & 0x80) != (tmp & 0x80))) > 0) << overflowflag);
         flags.uval = (flags.uval & ~(0x01 << zeroflag)) | ((newry == 0) << zeroflag);
-        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((newry & 0x80) > 0) << carryflag);
+        flags.uval = (flags.uval & ~(0x01 << negativeflag)) | (((newry & 0x80) > 0) << negativeflag);
     }
 
 
     // Shift Operations (all shift by one)
+
+
+    void VirtualCPU::ExecAsl() { ac.uval = ac.uval << 1; } // Arithmetic Shift Left (first set to 0, carry flag set to bit 7)
+    void VirtualCPU::ExecLsr() { ac.uval = ac.uval >> 1; } // Logical Shift Right (bit 7 set to zero, carry flat set to bit 0)
+
+
+    void VirtualCPU::ExecRol() { // Rotate Left (carry flag to bit zero, bit seven to carry flag)
+        unsigned char tmp = flags.uval & 1;
+        ac.uval = ac.uval << 1;
+        ac.uval = (ac.uval & ~(0x01 << carryflag)) | (((ac.uval & 0x01)) << carryflag);
+        flags.uval = (flags.uval & ~(0x01 << carryflag)) | ((((tmp & 0x80)) > 0) << carryflag);
+    }
+
+
+    void VirtualCPU::ExecRor() { // Rotate Right (carry flag to bit seven, bit zero to carry flag)
+        unsigned char tmp = (flags.uval & 0x80) > 0;
+        ac.uval = ac.uval >> 1;
+        ac.uval = (ac.uval & ~(0x01 << carryflag)) | ((((ac.uval & 0x80)) > 0) << carryflag);
+        flags.uval = (flags.uval & ~(0x01 << carryflag)) | (((tmp & 0x80)) << carryflag);
+    }
+
+
+    // Jumps, Calls, and Branches
+
+
 
 
 

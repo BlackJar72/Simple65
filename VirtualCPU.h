@@ -74,7 +74,7 @@ namespace ssixtyfive {
         opsed = 0x30, // Set Decimal Mode Flag
         opsei = 0x31, // Set Interrupt Disable Flag
         // Special: Other
-        opbrk = 0x32, // Force and Interrupt
+        opbrk = 0x32, // Force an Interrupt
         oprti = 0x33, // Return from Interrupt
         opnop = 0x34, // Do Nothing (instruction pointrt increments)
         ophlt = 0x35, // Halt (stop all execution, effectively shut down virtual machine)
@@ -172,6 +172,11 @@ namespace ssixtyfive {
         void ExecCmp(); // Compare the Accumular with Value at Address
         void ExecCpx(); // Compare Reg X with Value at Address
         void ExecCpy(); // Compare Reg Y with Value at Address
+        // Shift Operations (all shift by one)
+        void ExecAsl(); // Arithmetic Shift Left (first set to 0, carry flag set to bit 7)
+        void ExecLsr(); // Logical Shift Right (bit 7 set to zero, carry flat set to bit 0)
+        void ExecRol(); // Rotate Left (carry flag to bit zero, bit seven to carry flag)
+        void ExecRor(); // Rotate Right (carry flag to bit seven, bit zero to carry flag)
     private:
         unsigned short ip;    // Instruction Pointer (aka, program counter)
         vbyte  sp;    // Stack Pointer (points to location between 0x100 and 0x1FF)
